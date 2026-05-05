@@ -9,9 +9,18 @@ interface Props {
   setQuestionCount: (v: number) => void
   difficulty: Difficulty
   setDifficulty: (v: Difficulty) => void
+  secondsPerQuestion: number
+  setSecondsPerQuestion: (v: number) => void
 }
 
 const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard']
+
+function formatTime(s: number) {
+  if (s < 60) return `${s}s`
+  const m = Math.floor(s / 60)
+  const rem = s % 60
+  return rem === 0 ? `${m}m` : `${m}m ${rem}s`
+}
 
 export default function ContextForm({
   context,
@@ -20,20 +29,22 @@ export default function ContextForm({
   setQuestionCount,
   difficulty,
   setDifficulty,
+  secondsPerQuestion,
+  setSecondsPerQuestion,
 }: Props) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       {/* Additional context */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-slate-700">Additional context</label>
+        <label className="text-sm font-bold text-black">Additional context</label>
         <textarea
           value={context}
           onChange={(e) => setContext(e.target.value)}
           placeholder="e.g. Focus on Chapter 3, emphasize thermodynamics concepts..."
           rows={3}
-          className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-lg
-            placeholder:text-slate-400 text-slate-800 resize-none
-            focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500
+          className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg
+            placeholder:text-gray-400 text-black resize-none
+            focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500
             transition-colors"
         />
       </div>
@@ -41,9 +52,9 @@ export default function ContextForm({
       <div className="flex gap-6 flex-wrap">
         {/* Question count */}
         <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-bold text-black">
             Questions
-            <span className="ml-2 font-bold text-blue-600">{questionCount}</span>
+            <span className="ml-2 font-black text-pink-500">{questionCount}</span>
           </label>
           <input
             type="range"
@@ -51,9 +62,9 @@ export default function ContextForm({
             max={20}
             value={questionCount}
             onChange={(e) => setQuestionCount(Number(e.target.value))}
-            className="w-full accent-blue-600 h-1.5 rounded-full cursor-pointer"
+            className="w-full accent-pink-500 h-1.5 rounded-full cursor-pointer"
           />
-          <div className="flex justify-between text-xs text-slate-400">
+          <div className="flex justify-between text-xs text-gray-400">
             <span>1</span>
             <span>20</span>
           </div>
@@ -61,21 +72,43 @@ export default function ContextForm({
 
         {/* Difficulty */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-slate-700">Difficulty</label>
-          <div className="flex gap-1 p-1 bg-slate-100 rounded-lg">
+          <label className="text-sm font-bold text-black">Difficulty</label>
+          <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
             {DIFFICULTIES.map((d) => (
               <button
                 key={d}
+                type="button"
                 onClick={() => setDifficulty(d)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md capitalize transition-colors ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-md capitalize transition-colors ${
                   difficulty === d
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
+                    ? 'bg-white text-black shadow-sm'
+                    : 'text-gray-400 hover:text-black'
                 }`}
               >
                 {d}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Time per question */}
+        <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
+          <label className="text-sm font-bold text-black">
+            Time per question
+            <span className="ml-2 font-black text-pink-500">{formatTime(secondsPerQuestion)}</span>
+          </label>
+          <input
+            type="range"
+            min={30}
+            max={300}
+            step={15}
+            value={secondsPerQuestion}
+            onChange={(e) => setSecondsPerQuestion(Number(e.target.value))}
+            className="w-full accent-pink-500 h-1.5 rounded-full cursor-pointer"
+          />
+          <div className="flex justify-between text-xs text-gray-400">
+            <span>30s</span>
+            <span>5m</span>
           </div>
         </div>
       </div>
