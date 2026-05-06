@@ -9,6 +9,7 @@ interface ExamData {
   questions: Question[]
   secondsPerQuestion: number
   difficulty: string
+  timerEnabled?: boolean
 }
 
 export default function ExamPage() {
@@ -69,6 +70,7 @@ export default function ExamPage() {
           questions={examData.questions}
           secondsPerQuestion={examData.secondsPerQuestion}
           difficulty={examData.difficulty}
+          timerEnabled={examData.timerEnabled ?? true}
           onGenerateNew={() => router.push('/')}
         />
       </main>

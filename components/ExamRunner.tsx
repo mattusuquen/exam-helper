@@ -7,6 +7,7 @@ interface Props {
   questions: Question[]
   secondsPerQuestion: number
   difficulty: string
+  timerEnabled?: boolean
   onGenerateNew: () => void
 }
 
@@ -21,13 +22,13 @@ function formatTime(s: number) {
   return rem === 0 ? `${m}m` : `${m}m ${rem}s`
 }
 
-export default function ExamRunner({ questions, secondsPerQuestion, difficulty, onGenerateNew }: Props) {
+export default function ExamRunner({ questions, secondsPerQuestion, difficulty, timerEnabled = true, onGenerateNew }: Props) {
   const [phase, setPhase] = useState<Phase>('ready')
   const [current, setCurrent] = useState(0)
   const [answers, setAnswers] = useState<(string | null)[]>(() => Array(questions.length).fill(null))
   const [selected, setSelected] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState(secondsPerQuestion)
-  const [openReview, setOpenReview] = useState<number | null>(null)
+  const [openReview, setOpenReview] = useState<Set<number>>(() => new Set(questions.map((_, i) => i)))
   const [slideOut, setSlideOut] = useState(false)
   const [justClicked, setJustClicked] = useState<string | null>(null)
   const [displayScore, setDisplayScore] = useState(0)
@@ -77,6 +78,7 @@ export default function ExamRunner({ questions, secondsPerQuestion, difficulty, 
 
   // Countdown
   useEffect(() => {
+    if (!timerEnabled) return
     if (phase !== 'exam') return
     if (timeLeft <= 0) {
       advance()
@@ -84,7 +86,7 @@ export default function ExamRunner({ questions, secondsPerQuestion, difficulty, 
     }
     const t = setTimeout(() => setTimeLeft((s) => s - 1), 1000)
     return () => clearTimeout(t)
-  }, [timeLeft, phase]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timeLeft, phase, timerEnabled]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Score count-up on done
   useEffect(() => {
@@ -112,7 +114,7 @@ export default function ExamRunner({ questions, secondsPerQuestion, difficulty, 
     setSelected(null)
     setTimeLeft(secondsPerQuestion)
     setDisplayScore(0)
-    setOpenReview(null)
+    setOpenReview(new Set(questions.map((_, i) => i)))
     setSlideOut(false)
     setPhase('ready')
   }
@@ -142,9 +144,15 @@ export default function ExamRunner({ questions, secondsPerQuestion, difficulty, 
             <span className="px-3 py-1.5 bg-gray-100 rounded-full text-xs font-bold text-gray-600 capitalize">
               {questions.length} questions
             </span>
-            <span className="px-3 py-1.5 bg-gray-100 rounded-full text-xs font-bold text-gray-600">
-              {formatTime(secondsPerQuestion)} per question
-            </span>
+            {timerEnabled ? (
+              <span className="px-3 py-1.5 bg-gray-100 rounded-full text-xs font-bold text-gray-600">
+                {formatTime(secondsPerQuestion)} per question
+              </span>
+            ) : (
+              <span className="px-3 py-1.5 bg-gray-100 rounded-full text-xs font-bold text-gray-600">
+                No time limit
+              </span>
+            )}
             <span className="px-3 py-1.5 bg-gray-100 rounded-full text-xs font-bold text-gray-600 capitalize">
               {difficulty}
             </span>
@@ -224,7 +232,7 @@ export default function ExamRunner({ questions, secondsPerQuestion, difficulty, 
           {questions.map((q, i) => {
             const userAnswer = answers[i]
             const correct = userAnswer === q.correctAnswer
-            const isOpen = openReview === i
+            const isOpen = openReview.has(i)
 
             return (
               <div
@@ -233,7 +241,7 @@ export default function ExamRunner({ questions, secondsPerQuestion, difficulty, 
                 style={{ animationDelay: `${250 + i * 40}ms` }}
               >
                 <button
-                  onClick={() => setOpenReview(isOpen ? null : i)}
+                  onClick={() => setOpenReview((prev) => { const next = new Set(prev); if (next.has(i)) next.delete(i); else next.add(i); return next })}
                   className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 transition-colors"
                 >
                   <span
@@ -321,21 +329,23 @@ export default function ExamRunner({ questions, secondsPerQuestion, difficulty, 
           {questions.length}
         </span>
 
-        <div className={`flex items-center gap-2 transition-colors duration-500 ${timerUrgent ? 'text-red-500' : 'text-gray-500'}`}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className={`text-sm font-black tabular-nums ${timerUrgent ? 'animate-timer-pulse' : ''}`}>
-            {String(Math.floor(timeLeft / 60)).padStart(1, '0')}:{String(timeLeft % 60).padStart(2, '0')}
-          </span>
-          <div className="w-20 h-1 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-1000 ${timerUrgent ? 'bg-red-500' : 'bg-pink-500'}`}
-              style={{ width: `${timerPct}%` }}
-            />
+        {timerEnabled && (
+          <div className={`flex items-center gap-2 transition-colors duration-500 ${timerUrgent ? 'text-red-500' : 'text-gray-500'}`}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className={`text-sm font-black tabular-nums ${timerUrgent ? 'animate-timer-pulse' : ''}`}>
+              {String(Math.floor(timeLeft / 60)).padStart(1, '0')}:{String(timeLeft % 60).padStart(2, '0')}
+            </span>
+            <div className="w-20 h-1 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-1000 ${timerUrgent ? 'bg-red-500' : 'bg-pink-500'}`}
+                style={{ width: `${timerPct}%` }}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Animated question + options */}

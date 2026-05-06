@@ -70,9 +70,11 @@ Respond with ONLY a valid JSON array — no markdown fences, no prose. Schema:
 ]`,
   })
 
+  const max_tokens = Math.max(1024, Math.min(8192, questionCount * 500 + 500))
+
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
+    max_tokens,
     system:
       'You are an expert educator and exam designer. You create rigorous, high-quality multiple-choice questions from study materials. Respond only with valid JSON — no markdown fences, no explanation outside the JSON array.',
     messages: [{ role: 'user', content }],

@@ -11,6 +11,8 @@ interface Props {
   setDifficulty: (v: Difficulty) => void
   secondsPerQuestion: number
   setSecondsPerQuestion: (v: number) => void
+  timerEnabled: boolean
+  setTimerEnabled: (v: boolean) => void
 }
 
 const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard']
@@ -31,6 +33,8 @@ export default function ContextForm({
   setDifficulty,
   secondsPerQuestion,
   setSecondsPerQuestion,
+  timerEnabled,
+  setTimerEnabled,
 }: Props) {
   return (
     <div className="flex flex-col gap-6">
@@ -93,20 +97,39 @@ export default function ContextForm({
 
         {/* Time per question */}
         <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
-          <label className="text-sm font-bold text-black">
-            Time per question
-            <span className="ml-2 font-black text-pink-500">{formatTime(secondsPerQuestion)}</span>
-          </label>
+          <div className="flex items-center justify-between">
+            <label className={`text-sm font-bold ${timerEnabled ? 'text-black' : 'text-gray-400'}`}>
+              Time per question
+              {timerEnabled && (
+                <span className="ml-2 font-black text-pink-500">{formatTime(secondsPerQuestion)}</span>
+              )}
+            </label>
+            <button
+              type="button"
+              onClick={() => setTimerEnabled(!timerEnabled)}
+              className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none ${
+                timerEnabled ? 'bg-pink-500' : 'bg-gray-200'
+              }`}
+              aria-label="Toggle timer"
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                  timerEnabled ? 'translate-x-4' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
           <input
             type="range"
             min={30}
             max={300}
             step={15}
             value={secondsPerQuestion}
+            disabled={!timerEnabled}
             onChange={(e) => setSecondsPerQuestion(Number(e.target.value))}
-            className="w-full accent-pink-500 h-1.5 rounded-full cursor-pointer"
+            className={`w-full h-1.5 rounded-full ${timerEnabled ? 'accent-pink-500 cursor-pointer' : 'opacity-30 cursor-not-allowed'}`}
           />
-          <div className="flex justify-between text-xs text-gray-400">
+          <div className={`flex justify-between text-xs ${timerEnabled ? 'text-gray-400' : 'text-gray-300'}`}>
             <span>30s</span>
             <span>5m</span>
           </div>

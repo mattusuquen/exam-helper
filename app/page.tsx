@@ -23,6 +23,7 @@ export default function HomePage() {
   const [questionCount, setQuestionCount] = useState(10)
   const [difficulty, setDifficulty] = useState<Difficulty>('medium')
   const [secondsPerQuestion, setSecondsPerQuestion] = useState(60)
+  const [timerEnabled, setTimerEnabled] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0])
   const [error, setError] = useState<string | null>(null)
@@ -76,6 +77,7 @@ export default function HomePage() {
         questions: data.questions,
         secondsPerQuestion,
         difficulty,
+        timerEnabled,
       }))
       router.push('/exam')
     } catch {
@@ -121,6 +123,8 @@ export default function HomePage() {
               setDifficulty={setDifficulty}
               secondsPerQuestion={secondsPerQuestion}
               setSecondsPerQuestion={setSecondsPerQuestion}
+              timerEnabled={timerEnabled}
+              setTimerEnabled={setTimerEnabled}
             />
           </div>
 
